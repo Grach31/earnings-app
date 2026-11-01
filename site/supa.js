@@ -1,4 +1,4 @@
-/* Адаптер: даёт приложению тот же интерфейс window.claude.use("db" | "user" | "sample"),
+/* Адаптер: даёт приложению тот же интерфейс window.claude.use("db" | "user"),
    но поверх Supabase (таблицы docs и members, вход по e-mail и паролю). */
 (function () {
   "use strict";
@@ -122,31 +122,11 @@
     }
   };
 
-  /* ---------- распознавание чеков через Edge Function ---------- */
-  function blobToB64(blob) {
-    return new Promise(function (res, rej) {
-      var fr = new FileReader();
-      fr.onload = function () { res(String(fr.result).split(",")[1]); };
-      fr.onerror = rej; fr.readAsDataURL(blob);
-    });
-  }
-  var sample = {
-    limits: async function () { return { images: true }; },
-    json: async function (prompt, opts) {
-      var blob = opts && opts.images; if (Array.isArray(blob)) blob = blob[0];
-      var b64 = await blobToB64(blob);
-      var r = await sb.functions.invoke("scan-receipt", { body: { prompt: prompt, image: b64, mediaType: blob.type || "image/jpeg" } });
-      if (r.error) { var e = new Error("scan failed"); e.code = "failed"; throw e; }
-      return r.data;
-    }
-  };
-
   window.claude = {
     use: async function (name) {
       await ready;
       if (name === "db") return db;
       if (name === "user") return { isOwner: async function () { return role === "owner"; } };
-      if (name === "sample") return sample;
       return null;
     }
   };

@@ -14,7 +14,7 @@
 html,body{touch-action:manipulation;-webkit-text-size-adjust:100%;text-size-adjust:100%;overscroll-behavior:none}
 input,select,textarea{font-size:16px}
 </style>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="config.js?v=2"></script><script src="supa.js?v=2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="config.js?v=3"></script><script src="supa.js?v=3"></script>
 <script>
 (function(){
   var stop=function(e){e.preventDefault()};
@@ -327,7 +327,7 @@ select.full { width: 100%; }
 .panel:not([hidden]) > *:nth-child(5) { animation-delay: .2s; }
 .panel:not([hidden]) > *:nth-child(6) { animation-delay: .25s; }
 .panel:not([hidden]) > *:nth-child(n+7) { animation-delay: .3s; }
-#receiptCard:not([hidden]), #expForm:not([hidden]) { animation: rise .45s var(--ease) both; }
+#expForm:not([hidden]) { animation: rise .45s var(--ease) both; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .001ms !important; animation-delay: 0s !important; transition-duration: .001ms !important; }
 }
@@ -873,26 +873,7 @@ body.sheet-open { overflow: hidden; }
     </form>
   </div>
   <div id="paneX" hidden>
-    <div class="bigbtns">
-      <button type="button" class="btn" id="scanBtn">📷 Чек</button>
-      <button type="button" class="btn ghost" id="manualBtn">+ Вручную</button>
-    </div>
-    <input type="file" id="receiptFile" accept="image/*" hidden>
     <p class="note" id="scanNote"></p>
-
-    <!-- распознанный чек -->
-    <div class="card" id="receiptCard" hidden>
-      <div class="hrow"><h2 id="rcTitle">Чек</h2><span id="rcTotal"></span></div>
-      <div id="rcGroups" style="display:grid;gap:8px"></div>
-      <div class="field"><span class="lbl">Кто потратил</span><div class="chips" id="rcPeople"></div></div>
-      <div class="field datebox"><label for="rcDate">Дата</label><input id="rcDate" type="date"></div>
-      <p class="note">Поменяй категорию или сумму, если я ошибся.</p>
-      <div class="actions">
-        <button type="button" class="btn ghost" id="rcCancel">Отмена</button>
-        <button type="button" class="btn" id="rcSave">Сохранить</button>
-      </div>
-      <p class="note" id="rcNote"></p>
-    </div>
 
     <!-- ручной ввод -->
     <form class="card" id="expForm" hidden novalidate>
@@ -1075,7 +1056,7 @@ body.sheet-open { overflow: hidden; }
     openSheet(kind);
     ["formNote", "hNote", "scanNote"].forEach(id => { $(id).textContent = ""; $(id).className = "note"; });
     if (sheetKind === "x") {
-      if ($("expForm").hidden && $("receiptCard").hidden) openExpForm(null);
+      if ($("expForm").hidden) openExpForm(null);
     } else {
       const f = $(sheetKind === "h" ? "hAmount" : "amount");
       try { f.focus({ preventScroll: true }); } catch (e) {}
@@ -1610,7 +1591,7 @@ body.sheet-open { overflow: hidden; }
   const expBetween = (a, b) => state.expenses.filter(e => e.date >= a && e.date <= b);
   const otherBetween = (a, b) => state.other.filter(e => e.date >= a && e.date <= b);
   Object.assign(state, { expenses: [], other: [], generated: null, expEditing: null, expCat: null, expPerson: null,
-                         rcPerson: null, receipt: null, sample: null, regDone: false });
+                         regDone: false });
 
   function lastPerson() {
     const last = state.settings && state.settings.lastPerson;
@@ -1669,7 +1650,6 @@ body.sheet-open { overflow: hidden; }
     renderExpStats();
     renderExpLog();
     renderExpFormChips();
-    if (state.receipt) renderReceipt();
     renderFam();
   }
 
@@ -1828,7 +1808,6 @@ body.sheet-open { overflow: hidden; }
   }
   function openExpForm(e) {
     state.expEditing = e || null;
-    $("receiptCard").hidden = true; state.receipt = null;
     $("expForm").hidden = false;
     $("expTitle").textContent = e ? "Изменить расход" : "Новый расход";
     $("expSave").textContent = e ? "Сохранить" : "Добавить";
@@ -1884,117 +1863,6 @@ body.sheet-open { overflow: hidden; }
     }
   }
   function flashScan(text, err) { const n = $("scanNote"); n.textContent = text; n.className = "note" + (err ? " err" : " ok"); }
-
-  /* ---------- фото чека ---------- */
-  async function shrink(file) {
-    const img = await new Promise((res, rej) => {
-      const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = URL.createObjectURL(file);
-    });
-    const max = 1600, k = Math.min(1, max / Math.max(img.naturalWidth, img.naturalHeight));
-    const c = document.createElement("canvas");
-    c.width = Math.round(img.naturalWidth * k); c.height = Math.round(img.naturalHeight * k);
-    c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
-    URL.revokeObjectURL(img.src);
-    return await new Promise(res => c.toBlob(res, "image/jpeg", 0.85));
-  }
-
-  async function scanReceipt(file) {
-    if (!file) return;
-    closeExpForm();
-    const s = state.sample;
-    if (!s) { flashScan("Распознавание чеков сейчас недоступно. Добавь расход вручную.", true); return; }
-    if (!expCats().length) { flashScan("Сначала добавь категории в настройках (шестерёнка вверху).", true); return; }
-    const n = $("scanNote"); n.className = "note"; n.textContent = "Читаю чек… это займёт 10–20 секунд.";
-    $("scanBtn").disabled = true;
-    try {
-      const blob = await shrink(file);
-      const cats = expCats().map(c => c.name).join(", ");
-      const prompt = `На фото — кассовый чек из России. Разбери его и разложи покупки по категориям расходов.
-Категории (используй ТОЛЬКО эти названия, точно как написано): ${cats}.
-Правила:
-- Сумму каждой категории считай по строкам чека с учётом скидок; суммы категорий в сумме должны дать итог чека.
-- Продукты питания — в «Еда» (если есть такая категория); готовая еда и напитки в кафе/ресторане — в «Кафе»; бытовая химия и товары для дома — в «Дом».
-- Если позицию не отнести ни к одной категории — «Другое» (если есть), иначе ближайшая.
-- items — короткий перечень позиций через запятую (до 8 штук, по-русски, без цен).
-- date — дата чека в формате ГГГГ-ММ-ДД или null, если не видно. store — название магазина или null.
-- Если на фото не чек или его нельзя прочитать — верни {"error": "почему"}.
-Ответь только JSON вида:
-{"store": "...", "date": "ГГГГ-ММ-ДД", "total": 0, "groups": [{"category": "...", "amount": 0, "items": "..."}]}`;
-      const data = await s.json(prompt, { images: blob, modelTier: "default", cache: false });
-      if (!data || data.error || !Array.isArray(data.groups) || !data.groups.length) {
-        flashScan(data && data.error ? `Не получилось прочитать чек: ${data.error}` : "Не получилось прочитать чек. Сфотографируй ровнее и при хорошем свете.", true);
-        return;
-      }
-      const byName = name => expCats().find(c => c.name.toLowerCase() === String(name || "").toLowerCase());
-      const fallback = byName("Другое") || expCats()[0];
-      state.receipt = {
-        store: data.store || "", total: toNum(data.total),
-        date: /^\d{4}-\d{2}-\d{2}$/.test(data.date || "") && data.date <= TODAY ? data.date : TODAY,
-        groups: data.groups.map(g => ({ category: (byName(g.category) || fallback).id, amount: toNum(g.amount), items: String(g.items || "") }))
-                           .filter(g => g.amount > 0)
-      };
-      state.rcPerson = lastPerson();
-      n.textContent = "";
-      renderReceipt();
-      $("receiptCard").hidden = false;
-      $("receiptCard").scrollIntoView({ behavior: "smooth", block: "start" });
-    } catch (err) {
-      const code = err && err.code;
-      flashScan(code === "not_granted" ? "Нет доступа к распознаванию чеков."
-        : code === "rate_limited" ? "Слишком много запросов подряд. Подожди минуту и попробуй снова."
-        : code === "image_rejected" ? "Этот формат фото не подошёл. Попробуй сделать снимок заново."
-        : "Не получилось прочитать чек. Попробуй ещё раз или добавь вручную.", true);
-    } finally {
-      $("scanBtn").disabled = false;
-      $("receiptFile").value = "";
-    }
-  }
-
-  function renderReceipt() {
-    const r = state.receipt; if (!r) return;
-    $("rcTitle").textContent = r.store ? `Чек · ${r.store}` : "Чек";
-    const sumG = r.groups.reduce((s, g) => s + g.amount, 0);
-    $("rcTotal").textContent = r.total && Math.abs(r.total - sumG) > 1 ? `итог чека ${rub(r.total)} · по категориям ${rub(sumG)}` : rub(sumG);
-    const box = $("rcGroups"); box.textContent = "";
-    r.groups.forEach((g, i) => {
-      const row = el("div", "group");
-      const sel = el("select"); sel.setAttribute("aria-label", "Категория");
-      expCats().forEach(c => sel.appendChild(new Option(catLabel(c.id), c.id)));
-      sel.value = g.category;
-      sel.addEventListener("change", () => { g.category = sel.value; });
-      const amt = el("input"); amt.inputMode = "decimal"; amt.value = rubF.format(g.amount); amt.setAttribute("aria-label", "Сумма");
-      amt.addEventListener("input", () => { g.amount = toNum(amt.value); });
-      amt.addEventListener("blur", () => renderReceipt());
-      row.append(sel, amt);
-      if (g.items) row.appendChild(el("div", "items", g.items));
-      box.appendChild(row);
-    });
-    $("rcDate").value = r.date;
-    chipRow($("rcPeople"), people(), state.rcPerson, id => { state.rcPerson = id; renderReceipt(); }, p => p.name);
-  }
-
-  async function saveReceipt() {
-    const r = state.receipt; if (!r || !state.db) return;
-    const groups = r.groups.filter(g => g.amount > 0);
-    if (!groups.length) { $("rcNote").textContent = "Нет сумм для сохранения."; return; }
-    const date = $("rcDate").value || TODAY;
-    $("rcSave").disabled = true;
-    try {
-      const now = Date.now();
-      for (let i = 0; i < groups.length; i++) {
-        const g = groups[i];
-        await state.db.collection("expenses").add({ date, amount: g.amount, category: g.category, person: state.rcPerson || "",
-          note: [r.store, g.items].filter(Boolean).join(": ").slice(0, 140), source: "receipt", createdAt: now + i, updatedAt: now });
-      }
-      await rememberPerson(state.rcPerson);
-      const total = groups.reduce((s, g) => s + g.amount, 0);
-      state.receipt = null; $("receiptCard").hidden = true; $("rcNote").textContent = "";
-      flashScan(`Чек записан: −${rub(total)} (${groups.length} ${plural(groups.length, "категория", "категории", "категорий")})`);
-      closeSheet(); toast(`Чек записан: −${rub(total)}`);
-    } catch (err) {
-      $("rcNote").textContent = "Не удалось сохранить. Проверь интернет и попробуй ещё раз.";
-    } finally { $("rcSave").disabled = false; }
-  }
 
   /* ---------- регулярные доходы и платежи ---------- */
   function monthsFrom(startYm) {
@@ -2108,14 +1976,8 @@ body.sheet-open { overflow: hidden; }
   $("savePays").addEventListener("click", () => saveSettingsPart({ payments: readRegular("payRows", false) }, "payNote", "Платежи сохранены."));
   $("saveInc").addEventListener("click", () => saveSettingsPart({ incomes: readRegular("incRows", true) }, "incNote", "Доходы сохранены."));
 
-  $("scanBtn").addEventListener("click", () => $("receiptFile").click());
-  $("receiptFile").addEventListener("change", e => scanReceipt(e.target.files && e.target.files[0]));
-  $("manualBtn").addEventListener("click", () => openExpForm(null));
   $("expCancel").addEventListener("click", () => { closeExpForm(); closeSheet(); });
   $("expForm").addEventListener("submit", saveExp);
-  $("rcCancel").addEventListener("click", () => { state.receipt = null; $("receiptCard").hidden = true; });
-  $("rcSave").addEventListener("click", saveReceipt);
-  $("rcDate").addEventListener("change", () => { if (state.receipt) state.receipt.date = $("rcDate").value; });
 
   /* =====================================================================
      ДОХОДЫ ИРИНЫ
@@ -2684,13 +2546,6 @@ body.sheet-open { overflow: hidden; }
       state.savings = snap.docs.map(d => ({ id: d.id, ...d.data() }));
       renderFam();
     }, () => {});
-    // распознавание чеков (Claude)
-    window.claude.use("sample").then(async s => {
-      if (!s) return;
-      const caps = await s.limits().catch(() => null);
-      if (caps && caps.images) state.sample = s;
-      else $("scanNote").textContent = "Распознавание чеков здесь недоступно — добавляй вручную.";
-    }).catch(() => {});
     // все записи разом: нужны для рекордов и средней смены за всё время
     state.unsub = db.collection("entries").onSnapshot(snap => {
       state.entries = snap.docs.map(d => ({ id: d.id, ...d.data() }));
