@@ -812,7 +812,7 @@ body.sheet-open { overflow: hidden; }
       <p class="note" id="payNote"></p>
     </div>
   </section>
-  <p class="ver" id="appVer">Версия 2.2 · сборка <span>__SHA__</span> · <span>__BUILD__</span></p>
+  <p class="ver" id="appVer">Версия 2.3 · сборка <span>__SHA__</span> · <span>__BUILD__</span></p>
 </div>
 
 <button type="button" class="fab" id="fab" aria-label="Добавить запись"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>
@@ -1903,7 +1903,7 @@ body.sheet-open { overflow: hidden; }
     return out;
   }
   async function ensureRegular() {
-    if (!state.db || !state.settings || state.generated === null || state.regBusy) return;
+    if (!state.db || !state.settings || state.generated === null || state.regBusy || isHer()) return;   // регулярные платежи создаёт только владелец
     state.regBusy = true;
     try {
       const done = new Set(state.generated);
@@ -2204,7 +2204,7 @@ body.sheet-open { overflow: hidden; }
         await state.db.collection("her_income").add({ ...data, createdAt: Date.now() });
         hNote(`Добавлено: +${rub(amount)}`, "ok"); toast(`Добавлено: +${rub(amount)}`);
       }
-      if (data.service && state.settings && state.settings.lastService !== data.service) await state.db.doc("app/settings").update({ lastService: data.service });
+      if (data.service && state.settings && state.settings.lastService !== data.service) { try { await state.db.doc("app/settings").update({ lastService: data.service }); } catch (e) {} }   // гостю запись настроек запрещена, это лишь «запомнить последнее»
       resetHerForm(); closeSheet();
     } catch (err) {
       hNote(err && err.code === "quota_exceeded" ? "Хранилище заполнено, удали старые записи." : "Не удалось сохранить. Проверь интернет и попробуй ещё раз.", "err");
@@ -2615,7 +2615,7 @@ body.sheet-open { overflow: hidden; }
 })();
 </script>
 <script>
-(function(){var v=document.getElementById('appVer');if(v&&v.textContent.indexOf('__')>-1)v.textContent='Версия 2.2 · локальная копия';})();
+(function(){var v=document.getElementById('appVer');if(v&&v.textContent.indexOf('__')>-1)v.textContent='Версия 2.3 · локальная копия';})();
 </script>
 <script>
 /* Анимации поверх приложения: цифры «накручиваются», столбцы графиков растут по очереди.
