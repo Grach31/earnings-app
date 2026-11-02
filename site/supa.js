@@ -102,6 +102,12 @@
           if (r.error) throw r.error; emit(col);
         },
         update: async function (patch) {
+          // атомарно на стороне базы: две правки одной записи с разных устройств не затирают друг друга
+          var rp = await sb.rpc("docs_merge", { p_collection: col, p_id: id, p_patch: patch });
+          if (!rp.error) { emit(col); return; }
+          var msg = String(rp.error.message || "") + " " + String(rp.error.code || "");
+          if (!/docs_merge|PGRST202|42883/.test(msg)) throw rp.error;
+          // функции в базе ещё нет (не выполнен supabase/setup.sql) — прежний способ: прочитать, объединить, записать
           var cur = await sb.from("docs").select("data").eq("collection", col).eq("id", id).maybeSingle();
           if (cur.error) throw cur.error;
           var merged = Object.assign({}, cur.data ? cur.data.data : {}, patch);

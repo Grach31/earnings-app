@@ -36,3 +36,14 @@ do $$ begin
   alter publication supabase_realtime add table public.docs;
 exception when duplicate_object then null;
 end $$;
+
+-- Атомарное объединение полей записи (приложение вызывает её вместо «прочитать, слить, записать»).
+-- security invoker: права доступа проверяются теми же политиками, что и обычная запись.
+create or replace function public.docs_merge(p_collection text, p_id text, p_patch jsonb)
+returns void language sql security invoker set search_path = public as $$
+  insert into public.docs (collection, id, data, updated_at)
+  values (p_collection, p_id, p_patch, now())
+  on conflict (collection, id) do update
+    set data = public.docs.data || excluded.data, updated_at = now();
+$$;
+grant execute on function public.docs_merge(text, text, jsonb) to authenticated;
