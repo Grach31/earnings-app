@@ -264,8 +264,8 @@ input[type=date],input.note{width:100%;height:50px;border-radius:18px;background
     </header>
 
     <div class="squares owner-only">
-      <div class="sq"><div class="sq-l"><i class="dot inc"></i><span data-text="monthInc">Доход</span></div><div class="sq-n"><span class="num" data-bind="monthInc"></span><span class="cur">₽</span></div></div>
-      <div class="sq"><div class="sq-l"><i class="dot exp"></i><span data-text="monthExp">Расход</span></div><div class="sq-n"><span class="num" data-bind="monthExp"></span><span class="cur">₽</span></div></div>
+      <div class="sq"><div class="sq-l"><i class="dot inc"></i>Доход · всего</div><div class="sq-n"><span class="num" data-bind="totalInc"></span><span class="cur">₽</span></div></div>
+      <div class="sq"><div class="sq-l"><i class="dot exp"></i>Расход · всего</div><div class="sq-n"><span class="num" data-bind="totalExp"></span><span class="cur">₽</span></div></div>
     </div>
 
     <h2 class="sec">Все записи</h2>
@@ -273,14 +273,14 @@ input[type=date],input.note{width:100%;height:50px;border-radius:18px;background
     <div class="stack owner-only">
       <div class="card inc" data-tilt>
         <button class="hit" data-open="income" aria-label="Открыть все доходы"></button>
-        <div class="c-top"><div>Доход<div class="c-sub">за всё время · все записи →</div></div></div>
-        <div class="c-amt"><span class="num" data-bind="totalInc"></span><span class="cur">₽</span></div>
+        <div class="c-top"><div>Доход<div class="c-sub"><span data-text="monthName">за месяц</span> · все записи →</div></div></div>
+        <div class="c-amt"><span class="num" data-bind="monthInc"></span><span class="cur">₽</span></div>
         <button class="plus" data-add="income" aria-label="Записать доход"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>
       </div>
       <div class="card exp" data-tilt>
         <button class="hit" data-open="expense" aria-label="Открыть все расходы"></button>
-        <div class="c-top"><div>Расход<div class="c-sub">за всё время · все записи →</div></div></div>
-        <div class="c-amt"><span class="num" data-bind="totalExp"></span><span class="cur">₽</span></div>
+        <div class="c-top"><div>Расход<div class="c-sub"><span data-text="monthName">за месяц</span> · все записи →</div></div></div>
+        <div class="c-amt"><span class="num" data-bind="monthExp"></span><span class="cur">₽</span></div>
         <button class="plus" data-add="expense" aria-label="Записать расход"><svg viewBox="0 0 24 24"><path d="M5 12h14"/></svg></button>
       </div>
       <div class="card bank" data-tilt>
@@ -313,7 +313,7 @@ input[type=date],input.note{width:100%;height:50px;border-radius:18px;background
       </div>
     </div>
 
-    <p class="ver" id="appVer">Версия 3.0 · сборка <span>__SHA__</span> · <span>__BUILD__</span></p>
+    <p class="ver" id="appVer">Версия 3.1 · сборка <span>__SHA__</span> · <span>__BUILD__</span></p>
   </section>
 
   <!-- СПИСОК ЗАПИСЕЙ -->
@@ -581,8 +581,6 @@ input[type=date],input.note{width:100%;height:50px;border-radius:18px;background
     bind("totalExp", sum(S.expenses));
     bind("bankBal", bankBal());
     $$('[data-text="totalExp"]').forEach(function (el) { el.textContent = fmt(sum(S.expenses)); });
-    $$('[data-text="monthInc"]').forEach(function (el) { el.textContent = "Доход · " + monthName(MONTH); });
-    $$('[data-text="monthExp"]').forEach(function (el) { el.textContent = "Расход · " + monthName(MONTH); });
     $$('[data-text="monthName"]').forEach(function (el) { el.textContent = "за " + monthName(MONTH); });
     if (nav[nav.length - 1] === "list") renderList();
   }
@@ -917,7 +915,7 @@ input[type=date],input.note{width:100%;height:50px;border-radius:18px;background
     ROLE = own ? "owner" : "irina";
     var app = $("#app"); app.dataset.role = ROLE;
     var verText = $("#appVer").textContent;
-    if (verText.indexOf("__") > -1) $("#appVer").textContent = "Версия 3.0 · локальная копия";
+    if (verText.indexOf("__") > -1) $("#appVer").textContent = "Версия 3.1 · локальная копия";
     db = window.claude && window.claude.use ? await window.claude.use("db") : null;
     if (!db) { showStatus("Хранилище недоступно. Проверь интернет и обнови страницу."); return; }
     db.doc("app/settings").onSnapshot(function (s) { S.settings = s.exists ? s.data() : null; if (nav[nav.length - 1] !== "settings") render(); }, onErr);
