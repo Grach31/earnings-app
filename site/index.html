@@ -390,6 +390,8 @@ body.sheet-open .fab svg { transform: rotate(135deg); }
 .reel-s { display: flex; flex-direction: column; will-change: transform; }
 .reel-d { display: block; }
 .reel-x { flex: none; display: block; }
+/* Версия внизу страницы: по ней видно, обновилось приложение или нет */
+.ver { margin: 6px 0 0; text-align: center; font: 500 11.5px var(--mono); color: var(--muted); opacity: .7; }
 .entry.tap { grid-template-columns: 1fr auto; cursor: pointer; }
 .entry.tap:active { transform: scale(.985); }
 .entry.tap.xk .earn { color: var(--gold); }
@@ -810,6 +812,7 @@ body.sheet-open { overflow: hidden; }
       <p class="note" id="payNote"></p>
     </div>
   </section>
+  <p class="ver" id="appVer">Версия 2.1 · сборка <span>__SHA__</span> · <span>__BUILD__</span></p>
 </div>
 
 <button type="button" class="fab" id="fab" aria-label="Добавить запись"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>
@@ -2610,6 +2613,9 @@ body.sheet-open { overflow: hidden; }
   render();
   connect();
 })();
+</script>
+<script>
+(function(){var v=document.getElementById('appVer');if(v&&v.textContent.indexOf('__')>-1)v.textContent='Версия 2.1 · локальная копия';})();
 </script>
 <script>
 /* Анимации поверх приложения: цифры «накручиваются», столбцы графиков растут по очереди.
