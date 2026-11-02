@@ -364,8 +364,32 @@ select.full { width: 100%; }
 .sheetx { width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--line); background: var(--glass); color: var(--fg); font-size: 15px; }
 .sheet .card { background: none; border: 0; padding: 0; box-shadow: none; }
 .sheet .bigbtns, .sheet #paneX { display: grid; gap: 14px; }
-.toast { position: fixed; z-index: 40; left: 50%; bottom: calc(var(--tabbar) + 100px + env(safe-area-inset-bottom, 0px)); transform: translate(-50%, 16px); background: var(--surface-2); border: 1px solid var(--line-strong); border-radius: 999px; padding: 11px 18px; font-weight: 600; font-size: 14px; opacity: 0; pointer-events: none; transition: opacity .25s, transform .25s; max-width: calc(100% - 32px); text-align: center; }
-.toast.on { opacity: 1; transform: translate(-50%, 0); }
+/* Тост: Transitions.dev «Toast open / close» — вход медленнее (350 мс), выход быстрее (250 мс), поднимается с размытием */
+.toast { position: fixed; z-index: 40; left: 50%; bottom: calc(var(--tabbar) + 100px + env(safe-area-inset-bottom, 0px)); display: flex; align-items: center; justify-content: center; gap: 9px;
+  transform: translate(-50%, 16px) scale(.97); filter: blur(2px); background: var(--surface-2); border: 1px solid var(--line-strong); border-radius: 999px;
+  padding: 11px 18px 11px 14px; font-weight: 600; font-size: 14px; opacity: 0; pointer-events: none; will-change: transform, opacity, filter;
+  transition: opacity 250ms cubic-bezier(.22, 1, .36, 1), transform 250ms cubic-bezier(.22, 1, .36, 1), filter 250ms cubic-bezier(.22, 1, .36, 1);
+  width: max-content; max-width: calc(100% - 32px); white-space: nowrap; text-align: center; }
+.toast.on { opacity: 1; transform: translate(-50%, 0) scale(1); filter: blur(0);
+  transition-duration: 350ms; }
+.toast .tk { width: 18px; height: 18px; flex: none; fill: none; stroke: var(--good); stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+.toast .tk circle { stroke-dasharray: 57; stroke-dashoffset: 57; opacity: .55; }
+.toast .tk path { stroke-dasharray: 14; stroke-dashoffset: 14; }
+.toast.on .tk circle { animation: tkDraw .55s var(--ease) forwards; }
+.toast.on .tk path { animation: tkDraw .4s .18s var(--ease) forwards; }
+@keyframes tkDraw { to { stroke-dashoffset: 0; } }
+/* Кнопка «+»: поворачивается в «×», пока открыта форма */
+.fab svg { transition: transform .4s var(--ease); }
+body.sheet-open .fab svg { transform: rotate(135deg); }
+/* Суммы-«барабаны»: Transitions.dev «Spinning counter». Настоящий текст остаётся в разметке (прозрачный), цифры рисует слой поверх */
+.big.reel, .recbig.reel { position: relative; color: transparent; }
+.reel-host { position: absolute; left: 0; top: 0; display: flex; pointer-events: none; white-space: pre; }
+.big .reel-host { color: var(--fg); }
+.recbig .reel-host { color: var(--good); }
+.reel-c { flex: none; clip-path: inset(0 -.12em); }
+.reel-s { display: flex; flex-direction: column; will-change: transform; }
+.reel-d { display: block; }
+.reel-x { flex: none; display: block; }
 .entry.tap { grid-template-columns: 1fr auto; cursor: pointer; }
 .entry.tap:active { transform: scale(.985); }
 .entry.tap.xk .earn { color: var(--gold); }
@@ -1024,8 +1048,11 @@ body.sheet-open { overflow: hidden; }
   /* ---------- окно «+» ---------- */
   const sheet = $("sheet"), sheetBack = $("sheetBack");
   let sheetKind = "p", sheetTimer = null, toastTimer = null;
+  const TOAST_CHECK = '<svg class="tk" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="9"/><path d="M5.8 10.4l2.9 2.9 5.6-6"/></svg>';
   function toast(text) {
-    const t = $("toast"); t.textContent = text; t.classList.add("on");
+    const t = $("toast"); t.innerHTML = TOAST_CHECK;
+    const tx = document.createElement("span"); tx.textContent = text; t.appendChild(tx);
+    t.classList.add("on");
     clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove("on"), 2600);
   }
   function openSheet(kind) {
@@ -2590,43 +2617,163 @@ body.sheet-open { overflow: hidden; }
 (function () {
   try {
     if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    var NUM = /-?\d[\d\s  ]*/;
-    var fmt = new Intl.NumberFormat("ru-RU", { maximumFractionDigits: 0 });
-    var ease = function (t) { return 1 - Math.pow(1 - t, 3); };
+    var uid = 0;
 
     function textNodeOf(el) {
       for (var i = 0; i < el.childNodes.length; i++) if (el.childNodes[i].nodeType === 3) return el.childNodes[i];
       return null;
     }
+    function span(cls, txt) {
+      var s = document.createElement("span");
+      s.className = cls;
+      if (txt != null) s.textContent = txt;
+      return s;
+    }
+
+    /* Transitions.dev «Spinning counter»: каждая цифра — барабан 0–9, который прокручивается и встаёт на нужное значение.
+       Настоящий текст остаётся в элементе (его читает остальной код приложения), цифры рисует слой поверх. */
+    var DUR = 1100, STAGGER = 70, EASE = "cubic-bezier(.16, 1, .3, 1)", BLUR = 3;
 
     function track(el) {
-      var shown = 0, raf = 0, final = null;
-      var mo = new MutationObserver(function () {
+      var last = null, prev = "", host = null, flt = null, raf = 0, endT = 0, pending = false;
+
+      function visible() { return el.getClientRects().length > 0; }
+      function teardown() {
+        cancelAnimationFrame(raf); clearTimeout(endT);
+        el.classList.remove("reel");
+        if (host && host.parentNode) host.parentNode.removeChild(host);
+      }
+      function filter() {
+        if (flt) return flt;
+        var ns = "http://www.w3.org/2000/svg", id = "reelblur" + (++uid);
+        var s = document.createElementNS(ns, "svg");
+        s.setAttribute("aria-hidden", "true");
+        s.style.cssText = "position:absolute;width:0;height:0;overflow:hidden";
+        var f = document.createElementNS(ns, "filter");
+        f.setAttribute("id", id); f.setAttribute("x", "-10%"); f.setAttribute("y", "-40%"); f.setAttribute("width", "120%"); f.setAttribute("height", "180%");
+        var g = document.createElementNS(ns, "feGaussianBlur");
+        g.setAttribute("stdDeviation", "0 0");
+        f.appendChild(g); s.appendChild(f); document.body.appendChild(s);
+        flt = { id: id, g: g };
+        return flt;
+      }
+      /* ширина одной цифры (с учётом letter-spacing) и высота строки — в em, чтобы не ломаться при смене размера экрана */
+      function metrics() {
+        var cs = getComputedStyle(el), fs = parseFloat(cs.fontSize) || 16;
+        var lh = parseFloat(cs.lineHeight);
+        if (!isFinite(lh)) lh = fs * 1.2;
+        var p = document.createElement("span");
+        p.style.cssText = "position:absolute;visibility:hidden;white-space:pre;left:0;top:0";
+        p.textContent = "0000000000";
+        el.appendChild(p);
+        var w = p.getBoundingClientRect().width / 10;
+        el.removeChild(p);
+        return { w: w / fs, h: lh / fs };
+      }
+
+      function run(text, digits, spins) {
+        cancelAnimationFrame(raf); clearTimeout(endT);
+        var mt = metrics();
+        if (!(mt.w > 0)) { teardown(); return; }
+        if (!host) { host = span("reel-host"); host.setAttribute("aria-hidden", "true"); }
+        if (host.parentNode !== el) el.appendChild(host);
+        host.textContent = "";
+        host.style.filter = "none";
+        host.style.height = mt.h + "em";
+        var arr = Array.from(text.replace(/^[ \t\n]+|[ \t\n]+$/g, "")), nd = digits.length, di = 0, strips = [];
+        arr.forEach(function (ch) {
+          if (/\d/.test(ch)) {
+            var k = nd - 1 - di; di++;
+            var tgt = +ch, st = k < prev.length ? +prev[prev.length - 1 - k] : 0;
+            var endIdx = st + 10 * spins + ((tgt - st + 10) % 10);
+            var col = span("reel-c");
+            col.style.width = mt.w + "em"; col.style.height = mt.h + "em";
+            var strip = span("reel-s");
+            for (var i = 0; i <= endIdx; i++) {
+              var d = span("reel-d", String(i % 10));
+              d.style.height = mt.h + "em"; d.style.lineHeight = mt.h + "em";
+              strip.appendChild(d);
+            }
+            strip.style.transform = "translateY(" + (-st * mt.h) + "em)";
+            col.appendChild(strip); host.appendChild(col);
+            if (endIdx !== st) strips.push({ s: strip, to: endIdx });
+          } else {
+            var x = span("reel-x", ch);
+            x.style.height = mt.h + "em"; x.style.lineHeight = mt.h + "em";
+            host.appendChild(x);
+          }
+        });
+        el.classList.add("reel");
+        if (!strips.length) return;
+
+        void host.offsetWidth;
+        strips.forEach(function (o, j) {
+          o.s.style.transition = "transform " + DUR + "ms " + EASE + " " + (j * STAGGER) + "ms";
+          o.s.style.transform = "translateY(" + (-o.to * mt.h) + "em)";
+        });
+        var total = DUR + (strips.length - 1) * STAGGER, f = filter(), t0 = performance.now();
+        host.style.filter = "url(#" + f.id + ")";
+        (function frame(now) {
+          var k = Math.min(1, (now - t0) / total);
+          f.g.setAttribute("stdDeviation", "0 " + (BLUR * Math.pow(1 - k, 2)).toFixed(2));
+          if (k < 1) raf = requestAnimationFrame(frame);
+        })(t0);
+        endT = setTimeout(function () {
+          host.style.filter = "none";
+          strips.forEach(function (o) {
+            o.s.style.transition = "none";
+            while (o.s.childNodes.length > 1) o.s.removeChild(o.s.firstChild);
+            o.s.style.transform = "none";
+          });
+        }, total + 80);
+      }
+
+      function sync() {
         var tn = textNodeOf(el);
         if (!tn) return;
         var text = tn.nodeValue;
-        if (text === final) return;
-        var m = NUM.exec(text);
-        if (!m) { cancelAnimationFrame(raf); final = text; shown = 0; return; }
-        var target = parseInt(m[0].replace(/[^\d-]/g, ""), 10);
-        if (!isFinite(target)) { final = text; return; }
-        var pre = text.slice(0, m.index), post = text.slice(m.index + m[0].length);
-        var from = shown, t0 = performance.now(), dur = 700;
-        final = text;
-        cancelAnimationFrame(raf);
-        if (from === target) return;
-        (function step(now) {
-          var k = Math.min(1, (now - t0) / dur);
-          var v = k >= 1 ? target : Math.round(from + (target - from) * ease(k));
-          shown = v;
-          tn.nodeValue = k >= 1 ? text : pre + fmt.format(v) + post;
-          mo.takeRecords();
-          if (k < 1) raf = requestAnimationFrame(step);
-        })(t0);
+        if (!/\d/.test(text)) { teardown(); prev = ""; pending = false; return; }
+        if (!visible()) { pending = true; return; }
+        pending = false;
+        var digits = text.replace(/\D/g, "");
+        var spins = digits === prev ? 0 : (prev === "" || prev === "0" ? 2 : 1);
+        run(text, digits, spins);
+        prev = digits;
+      }
+
+      var mo = new MutationObserver(function () {
+        var tn = textNodeOf(el);
+        if (!tn) return;
+        if (tn.nodeValue === last) return;
+        last = tn.nodeValue;
+        sync();
       });
       mo.observe(el, { childList: true, characterData: true, subtree: true });
+      if ("IntersectionObserver" in window) {
+        new IntersectionObserver(function (es) {
+          if (pending && es.some(function (e) { return e.isIntersecting; })) sync();
+        }).observe(el);
+      }
     }
     Array.prototype.forEach.call(document.querySelectorAll(".big, .recbig"), track);
+
+    /* Transitions.dev «Donut chart»: сегменты кольца расходов дорисовываются по очереди */
+    var dn = document.getElementById("esDonut"), dsig = "";
+    if (dn && dn.animate) {
+      new MutationObserver(function () {
+        var cs = dn.querySelectorAll("circle");
+        var sig = Array.prototype.map.call(cs, function (c) { return c.getAttribute("stroke-dasharray") + "|" + c.getAttribute("stroke"); }).join(";");
+        if (sig === dsig) return;
+        dsig = sig;
+        Array.prototype.forEach.call(cs, function (c, i) {
+          if (i === 0) return;
+          var da = c.getAttribute("stroke-dasharray"), parts = (da || "").split(" ");
+          if (parts.length < 2) return;
+          c.animate([{ strokeDasharray: "0 " + parts[1] }, { strokeDasharray: da }],
+            { duration: 800, delay: (i - 1) * 90, easing: "cubic-bezier(.16, 1, .3, 1)", fill: "backwards" });
+        });
+      }).observe(dn, { childList: true });
+    }
 
     /* столбцы графиков появляются волной */
     function stagger(svg) {
