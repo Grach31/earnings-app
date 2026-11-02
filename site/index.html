@@ -40,7 +40,8 @@ h1,h2,p{margin:0}
 .app{--bg:#0A0A0F;--glow1:rgba(31,191,143,.17);--glow2:rgba(163,42,102,.2);
   --inc-a:#5CE0B0;--inc-1:#0A3F36;--inc-2:#0F6F55;--inc-3:#128064;
   --exp-a:#FF8FBF;--exp-1:#43102F;--exp-2:#862058;--exp-3:#A32A66;
-  --bank-a:#F5C451;--bank-1:#3A2705;--bank-2:#7A5410;--bank-3:#946814;--acc:var(--inc-a);}
+  --bank-a:#F5C451;--bank-1:#3A2705;--bank-2:#7A5410;--bank-3:#946814;
+  --wrk-a:#9CABFF;--wrk-1:#141A4D;--wrk-2:#2A37A0;--wrk-3:#3949C2;--acc:var(--inc-a);}
 .app{position:relative;width:100%;max-width:430px;height:100dvh;max-height:900px;margin:0 auto;overflow:hidden;
   background:radial-gradient(120% 50% at 10% 0%,var(--glow1) 0%,transparent 60%),radial-gradient(90% 45% at 100% 100%,var(--glow2) 0%,transparent 58%),var(--bg);transition:background .6s}
 .screen{position:absolute;inset:0;padding:18px 20px 24px;display:flex;flex-direction:column;overflow:hidden auto;
@@ -73,17 +74,18 @@ h1,h2,p{margin:0}
 .sq{background:rgba(255,255,255,.06);border:1px solid var(--line);border-radius:24px;padding:16px}
 .sq-l{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--mut);font-weight:600}
 .dot{width:9px;height:9px;border-radius:5px;display:inline-block}
-.dot.inc{background:var(--inc-a)}.dot.exp{background:var(--exp-a)}.dot.bank{background:var(--bank-a)}
+.dot.work{background:var(--wrk-a)}.dot.inc{background:var(--inc-a)}.dot.exp{background:var(--exp-a)}.dot.bank{background:var(--bank-a)}
 .sq-n{margin-top:10px;font-size:25px;display:flex;align-items:baseline}
 .sec{margin:28px 0 14px;font-size:20px;font-weight:800}
 
 /* карточки */
 .stack{position:relative}
-.card{position:relative;height:178px;border-radius:30px;padding:18px 22px;color:#fff;overflow:hidden;transform-style:preserve-3d;
+.card{position:relative;height:160px;border-radius:30px;padding:18px 22px;color:#fff;overflow:hidden;transform-style:preserve-3d;
   transition:transform .5s var(--ease);box-shadow:0 -6px 30px rgba(0,0,0,.45);border:1px solid rgba(255,255,255,.1)}
-.card.inc{background:linear-gradient(135deg,var(--inc-1) 0%,var(--inc-2) 60%,var(--inc-3) 100%);z-index:1}
-.card.exp{background:linear-gradient(135deg,var(--exp-1) 0%,var(--exp-2) 60%,var(--exp-3) 100%);margin-top:-42px;z-index:2}
-.card.bank{background:linear-gradient(135deg,var(--bank-1) 0%,var(--bank-2) 60%,var(--bank-3) 100%);margin-top:-42px;z-index:3}
+.card.work{background:linear-gradient(135deg,var(--wrk-1) 0%,var(--wrk-2) 60%,var(--wrk-3) 100%);z-index:1}
+.card.inc{background:linear-gradient(135deg,var(--inc-1) 0%,var(--inc-2) 60%,var(--inc-3) 100%);margin-top:-34px;z-index:2}
+.card.exp{background:linear-gradient(135deg,var(--exp-1) 0%,var(--exp-2) 60%,var(--exp-3) 100%);margin-top:-34px;z-index:3}
+.card.bank{background:linear-gradient(135deg,var(--bank-1) 0%,var(--bank-2) 60%,var(--bank-3) 100%);margin-top:-34px;z-index:4}
 .card::after{content:"";position:absolute;inset:0;pointer-events:none;border-radius:inherit;opacity:0;transition:opacity .3s;
   background:radial-gradient(circle at var(--gx,50%) var(--gy,0%),rgba(255,255,255,.28),transparent 55%)}
 .card.tilt::after{opacity:1}
@@ -120,6 +122,13 @@ h1,h2,p{margin:0}
 #list[data-kind=income]{--acc:var(--inc-a)}
 #list[data-kind=expense]{--acc:var(--exp-a)}
 #list[data-kind=bank]{--acc:var(--bank-a)}
+#list[data-kind=work]{--acc:var(--wrk-a)}
+#list[data-kind=work] .seg{display:none}
+#wk{display:none}
+#list[data-kind=work] #wk{display:block}
+.wk-t{display:flex;justify-content:space-between;align-items:baseline;margin:20px 2px 0;font-weight:800;font-size:16px}
+.wk-t b{color:var(--acc)}
+.jh{margin:26px 2px 0;font-weight:800;font-size:16px}
 #list[data-kind=bank] .seg{display:none}
 .fc{display:none;margin-top:12px;padding:16px 18px;border-radius:22px;background:color-mix(in srgb,var(--bank-a) 9%,transparent);border:1px solid color-mix(in srgb,var(--bank-a) 28%,transparent)}
 #list[data-kind=bank] .fc{display:block}
@@ -139,6 +148,7 @@ h1,h2,p{margin:0}
 .row:active{background:rgba(255,255,255,.04)}
 @keyframes rowIn{from{opacity:0;transform:translateY(12px);filter:blur(3px)}}
 .ri{width:44px;height:44px;border-radius:16px;flex:none;display:flex;align-items:center;justify-content:center;font-weight:800;color:var(--ink)}
+.ri.work{background:var(--wrk-a)}
 .ri.inc{background:var(--inc-a)}
 .ri.exp{background:var(--exp-a)}
 .ri.bank{background:var(--bank-a)}
@@ -156,6 +166,7 @@ h1,h2,p{margin:0}
 #app[data-kind=income]{--acc:var(--inc-a)}
 #app[data-kind=expense]{--acc:var(--exp-a)}
 #app[data-kind=bank]{--acc:var(--bank-a)}
+#app[data-kind=work]{--acc:var(--wrk-a)}
 .fab svg{width:28px;height:28px;stroke:currentColor;fill:none;stroke-width:2.6;stroke-linecap:round}
 #list h1{font-size:19px;font-weight:800}
 
@@ -271,6 +282,12 @@ input[type=date],input.note{width:100%;height:50px;border-radius:18px;background
     <h2 class="sec">Все записи</h2>
 
     <div class="stack owner-only">
+      <div class="card work" data-tilt>
+        <button class="hit" data-open="work" aria-label="Открыть журнал работы"></button>
+        <div class="c-top"><div>Работа<div class="c-sub">заработано <span data-text="monthName">за месяц</span> · журнал →</div></div></div>
+        <div class="c-amt"><span class="num" data-bind="monthWork"></span><span class="cur">₽</span></div>
+        <button class="plus" data-add="work" aria-label="Записать работу"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>
+      </div>
       <div class="card inc" data-tilt>
         <button class="hit" data-open="income" aria-label="Открыть все доходы"></button>
         <div class="c-top"><div>Доход<div class="c-sub"><span data-text="monthName">за месяц</span> · все записи →</div></div></div>
@@ -313,7 +330,7 @@ input[type=date],input.note{width:100%;height:50px;border-radius:18px;background
       </div>
     </div>
 
-    <p class="ver" id="appVer">Версия 3.1 · сборка <span>__SHA__</span> · <span>__BUILD__</span></p>
+    <p class="ver" id="appVer">Версия 3.2 · сборка <span>__SHA__</span> · <span>__BUILD__</span></p>
   </section>
 
   <!-- СПИСОК ЗАПИСЕЙ -->
@@ -328,6 +345,7 @@ input[type=date],input.note{width:100%;height:50px;border-radius:18px;background
       <div class="hero-n"><span class="num" data-bind="listTotal"></span><span class="cur">₽</span></div>
     </div>
     <div class="fc" id="fc"></div>
+    <div id="wk"></div>
     <div class="seg" id="seg" data-v="all" role="group" aria-label="Период">
       <button data-p="all" aria-pressed="true">Всё время</button>
       <button data-p="month" aria-pressed="false" id="segMonth">Месяц</button>
@@ -346,7 +364,7 @@ input[type=date],input.note{width:100%;height:50px;border-radius:18px;background
     <div id="setClinics"></div>
     <button class="add" id="addClinic">+ Добавить клинику</button>
     <button class="savebtn" id="saveClinics">Сохранить клиники</button>
-    <p class="hint">«Сдача жилья» есть всегда: сумма записывается как есть, без процента.</p>
+    <p class="hint">Клиники и проценты нужны для вкладки «Работа». В «Доходах» только «ЗП» и «Сдача жилья», сумма как есть.</p>
 
     <h3>Категории расходов</h3>
     <div id="setCats"></div>
@@ -409,18 +427,39 @@ input[type=date],input.note{width:100%;height:50px;border-radius:18px;background
   var byDate = function (a, b) { return a.date < b.date ? 1 : a.date > b.date ? -1 : (b.created || 0) - (a.created || 0); };
 
   /* единые «элементы» для списков */
-  function incomeItems() {
-    var a = S.entries.map(function (e) {
+  /* «Работа»: сколько заработано по клиникам. Это НЕ доход, доходом станет только записанная ЗП. */
+  function workItems() {
+    return S.entries.map(function (e) {
       var c = clinicById(e.clinic);
       return { id: e.id, src: "entry", date: e.date, created: e.createdAt || 0, amount: earn(e), raw: e,
         title: e.clinicName || (c && c.name) || "Клиника",
-        sub: (e.pct ? "Доход по " + e.pct + "%" : "Доход") + (e.lab ? " · техник " + fmt(e.lab) : "") };
+        sub: "Работа " + fmt(e.amount || 0) + (e.pct ? " · " + e.pct + "%" : "") + (e.lab ? " · техник " + fmt(e.lab) : "") };
     });
-    var b = S.other.map(function (o) {
+  }
+  /* «Доход»: только то, что реально получено: ЗП и сдача жилья */
+  function incomeItems() {
+    return S.other.map(function (o) {
       return { id: o.id, src: "other", date: o.date, created: o.createdAt || 0, amount: o.amount || 0, raw: o,
-        title: o.name || "Сдача жилья", sub: "Без процента" };
+        title: o.name || "Сдача жилья", sub: o.name === "ЗП" ? "Зарплата" : "Без процента" };
     });
-    return a.concat(b);
+  }
+  var monthLabel = function (ym) { var y = ym.slice(0, 4); return cap(monthName(ym)) + (y !== MONTH.slice(0, 4) ? " " + y : ""); };
+  function workBlock(ym, title) {
+    var items = inMonth(workItems(), ym), tot = sum(items), by = {}, order = [];
+    clinics().forEach(function (c) { by[c.name] = 0; order.push(c.name); });
+    items.forEach(function (r) { if (!(r.title in by)) { by[r.title] = 0; order.push(r.title); } by[r.title] += r.amount; });
+    var rows = order.filter(function (n) { return by[n] > 0; }).map(function (n) {
+      return "<div><span>" + esc(n) + "</span><b>" + fmt(by[n]) + " ₽</b></div>";
+    }).join("");
+    return '<div class="wk-t"><span>' + esc(title) + "</span><b>" + fmt(tot) + " ₽</b></div>" +
+      (rows ? '<div class="facts">' + rows + "</div>" : '<p class="hint">Записей пока нет</p>');
+  }
+  function wkHtml() {
+    var months = {};
+    workItems().forEach(function (r) { var m = (r.date || "").slice(0, 7); if (m && m !== MONTH) months[m] = 1; });
+    var h = workBlock(MONTH, monthLabel(MONTH) + " · сейчас");
+    Object.keys(months).sort().reverse().forEach(function (m) { h += workBlock(m, monthLabel(m)); });
+    return h + '<p class="hint">Это не доход. Деньги попадут в «Доходы», когда ты запишешь ЗП. 1-го числа счётчик обнуляется, итог остаётся в истории.</p>';
   }
   function expenseItems() {
     return S.expenses.map(function (e) {
@@ -436,7 +475,7 @@ input[type=date],input.note{width:100%;height:50px;border-radius:18px;background
         title: out ? "Снято с банка" : "Внесено в банк", sub: s.note || "Без заметки" };
     });
   }
-  var itemsOf = function (k) { return k === "income" ? incomeItems() : k === "expense" ? expenseItems() : bankItems(); };
+  var itemsOf = function (k) { return k === "income" ? incomeItems() : k === "work" ? workItems() : k === "expense" ? expenseItems() : bankItems(); };
   var bankBal = function () { return S.savings.reduce(function (a, s) { return a + (s.amount || 0); }, 0); };
 
   /* ---------- прогноз «сколько отложить» ---------- */
@@ -514,10 +553,10 @@ input[type=date],input.note{width:100%;height:50px;border-radius:18px;background
     $("#app").dataset.view = prev;
     render();
   }
-  var TITLES = { income: "Доходы", expense: "Расходы", bank: "Банк" };
-  var SINGLE = { income: "Доход", expense: "Расход", bank: "Банк" };
+  var TITLES = { work: "Работа", income: "Доходы", expense: "Расходы", bank: "Банк" };
+  var SINGLE = { work: "Работа", income: "Доход", expense: "Расход", bank: "Банк" };
   function openList(kind) {
-    if (kind === "income" && ROLE !== "owner") return;
+    if ((kind === "income" || kind === "work") && ROLE !== "owner") return;
     listKind = kind; period = "all";
     $("#app").dataset.kind = kind;
     $("#list").dataset.kind = kind;
@@ -542,7 +581,7 @@ input[type=date],input.note{width:100%;height:50px;border-radius:18px;background
     var initial = kind === "bank" ? (r.out ? "−" : "+") : r.icon || r.title.charAt(0);
     var em = kind === "expense" && r.icon ? " em" : "";
     return '<button class="row" data-id="' + esc(r.id) + '" style="animation-delay:' + Math.min(i * 40, 360) + 'ms">' +
-      '<span class="ri ' + (kind === "income" ? "inc" : kind === "expense" ? "exp" : "bank") + em + '" aria-hidden="true">' + esc(initial) + "</span>" +
+      '<span class="ri ' + (kind === "income" ? "inc" : kind === "work" ? "work" : kind === "expense" ? "exp" : "bank") + em + '" aria-hidden="true">' + esc(initial) + "</span>" +
       '<span class="rt"><b>' + esc(r.title) + "</b><span>" + esc(r.sub) + "</span></span>" +
       '<span class="ra">' + signOf(kind, r) + fmt(r.amount) + " ₽</span></button>";
   }
@@ -559,10 +598,12 @@ input[type=date],input.note{width:100%;height:50px;border-radius:18px;background
   }
   function renderList() {
     var all = itemsOf(listKind).sort(byDate);
-    var list = listKind !== "bank" && period === "month" ? inMonth(all) : all;
-    var label = listKind === "bank" ? "В банке сейчас" : SINGLE[listKind] + (period === "month" ? " за " + monthName(MONTH) : " за всё время");
+    var isWork = listKind === "work";
+    var list = listKind !== "bank" && !isWork && period === "month" ? inMonth(all) : all;
+    var label = listKind === "bank" ? "В банке сейчас" : isWork ? "Заработано за " + monthName(MONTH) : SINGLE[listKind] + (period === "month" ? " за " + monthName(MONTH) : " за всё время");
     $("#listLabel").textContent = label;
-    setNum($('[data-bind="listTotal"]'), listKind === "bank" ? bankBal() : sum(list));
+    setNum($('[data-bind="listTotal"]'), listKind === "bank" ? bankBal() : isWork ? sum(inMonth(all)) : sum(list));
+    $("#wk").innerHTML = isWork ? wkHtml() : "";
     $("#fc").innerHTML = listKind === "bank" && ROLE === "owner" ? fcHtml() : "";
     $("#segMonth").textContent = cap(monthName(MONTH));
     var html = "", day = null, i = 0;
@@ -571,10 +612,12 @@ input[type=date],input.note{width:100%;height:50px;border-radius:18px;background
       if (r.date !== day) { day = r.date; html += '<div class="day"><span>' + dayLabel(day) + "</span></div>"; }
       html += rowHtml(listKind, r, i++);
     });
+    if (isWork && list.length) html = '<div class="jh">Журнал записей</div>' + html;
     $("#rows").innerHTML = html;
   }
   function render() {
     var inc = ROLE === "owner" ? incomeItems() : [];
+    bind("monthWork", sum(inMonth(ROLE === "owner" ? workItems() : [])));
     bind("monthInc", sum(inMonth(inc)));
     bind("monthExp", sum(inMonth(S.expenses)));
     bind("totalInc", sum(inc));
@@ -599,7 +642,7 @@ input[type=date],input.note{width:100%;height:50px;border-radius:18px;background
 
   /* ---------- окно записи ---------- */
   var sheet = $("#sheet"), bd = $("#bd"), F = null;
-  function accentOf(kind) { return /bank|suggest/.test(kind) ? "var(--bank-a)" : /expense/.test(kind) ? "var(--exp-a)" : "var(--inc-a)"; }
+  function accentOf(kind) { return /bank|suggest/.test(kind) ? "var(--bank-a)" : /work/.test(kind) ? "var(--wrk-a)" : /expense/.test(kind) ? "var(--exp-a)" : "var(--inc-a)"; }
   function openSheet(html, kind) {
     sheet.style.setProperty("--acc", accentOf(kind));
     sheet.innerHTML = html;
@@ -622,11 +665,13 @@ input[type=date],input.note{width:100%;height:50px;border-radius:18px;background
   function openForm(kind, item) {
     F = { kind: kind, edit: item ? item.id : null, editSrc: item ? item.src : null, raw: item ? item.raw : null, date: item ? item.date : TODAY, note: "", amount: 0 };
     if (kind === "income") {
+      F.src = item ? (item.raw.name === "ЗП" ? "salary" : "rent") : (S.settings && S.settings.lastIncome === "rent" ? "rent" : "salary");
+      F.amount = item ? item.raw.amount || 0 : 0;
+    } else if (kind === "work") {
       var cl = clinics();
       F.lab = 0; F.pct = 0;
-      if (item && item.src === "entry") { F.src = item.raw.clinic; F.amount = item.raw.amount || 0; F.lab = item.raw.lab || 0; F.pct = item.raw.pct || 0; }
-      else if (item) { F.src = "rent"; F.amount = item.raw.amount || 0; }
-      else F.src = (S.settings && S.settings.lastClinic && clinicById(S.settings.lastClinic)) ? S.settings.lastClinic : (cl[0] ? cl[0].id : "rent");
+      if (item) { F.src = item.raw.clinic; F.amount = item.raw.amount || 0; F.lab = item.raw.lab || 0; F.pct = item.raw.pct || 0; }
+      else F.src = (S.settings && S.settings.lastClinic && clinicById(S.settings.lastClinic)) ? S.settings.lastClinic : (cl[0] ? cl[0].id : "");
     } else if (kind === "expense") {
       F.cat = item ? item.raw.category : ((S.settings && S.settings.lastCat && cats().some(function (c) { return c.id === S.settings.lastCat; })) ? S.settings.lastCat : cats()[0].id);
       F.note = item ? (item.raw.note || "") : ""; F.amount = item ? item.raw.amount : 0;
@@ -644,17 +689,17 @@ input[type=date],input.note{width:100%;height:50px;border-radius:18px;background
   function drawForm(first) {
     var h = "", k = F.kind;
     if (k === "income") {
-      var flat = F.src === "rent";
+      h += '<div class="sh-head"><h2>' + (F.edit ? "Изменить доход" : "Новый доход") + "</h2>" + closeBtn() + "</div>";
+      h += '<div class="lbl">Откуда доход</div>' + chipsHtml([{ v: "salary", t: "ЗП" }, { v: "rent", t: "Сдача жилья" }], F.src, "data-src");
+      h += '<div class="lbl">' + (F.src === "salary" ? "Сколько пришло зарплаты" : "Сумма") + "</div>" + amountHtml("amt", F.amount, "Сумма");
+    } else if (k === "work") {
       var chips = clinics().map(function (x) { return { v: x.id, t: x.name }; });
       if (F.raw && F.editSrc === "entry" && !clinicById(F.raw.clinic)) chips.push({ v: F.raw.clinic, t: F.raw.clinicName || "Клиника" });
-      chips.push({ v: "rent", t: "Сдача жилья" });
-      h += '<div class="sh-head"><h2>' + (F.edit ? "Изменить доход" : "Новый доход") + "</h2>" + closeBtn() + "</div>";
-      h += '<div class="lbl">Откуда доход</div>' + chipsHtml(chips, F.src, "data-src");
-      h += '<div class="lbl">' + (flat ? "Сумма (приходит как есть)" : "Сумма работы") + "</div>" + amountHtml("amt", F.amount, "Сумма");
-      if (!flat) {
-        h += '<details class="opt"' + (F.lab ? " open" : "") + "><summary>Есть техник? Указать</summary>" + amountHtml("lab", F.lab, "Техник") + "</details>";
-        h += '<div class="calc" id="calc">Вам по ' + pctFor() + '%: <b>' + fmt(yours()) + " ₽</b></div>";
-      }
+      h += '<div class="sh-head"><h2>' + (F.edit ? "Изменить работу" : "Новая работа") + "</h2>" + closeBtn() + "</div>";
+      h += '<div class="lbl">Клиника</div>' + (chips.length ? chipsHtml(chips, F.src, "data-src") : '<p class="hint">Сначала добавь клинику и процент в настройках (шестерёнка на главной).</p>');
+      h += '<div class="lbl">Сумма работы</div>' + amountHtml("amt", F.amount, "Сумма");
+      h += '<details class="opt"' + (F.lab ? " open" : "") + "><summary>Есть техник? Указать</summary>" + amountHtml("lab", F.lab, "Техник") + "</details>";
+      h += '<div class="calc" id="calc">Вам по ' + pctFor() + '%: <b>' + fmt(yours()) + " ₽</b></div>";
     } else if (k === "expense") {
       h += '<div class="sh-head"><h2>' + (F.edit ? "Изменить расход" : "Новый расход") + "</h2>" + closeBtn() + "</div>";
       h += '<div class="lbl">На что</div>' + chipsHtml(cats().map(function (x) { return { v: x.id, t: ((x.icon || "") + " " + x.name).trim() }; }), F.cat, "data-cat");
@@ -672,12 +717,12 @@ input[type=date],input.note{width:100%;height:50px;border-radius:18px;background
     if (first) openSheet(h, k); else { var keep = sheet.scrollTop; sheet.innerHTML = h; sheet.scrollTop = keep; }
     updSave();
   }
-  function curAmount() { return F.kind === "income" && F.src !== "rent" ? Math.round(yours()) : (F.amount || 0); }
+  function curAmount() { return F.kind === "work" ? Math.round(yours()) : (F.amount || 0); }
   function updSave() {
     var b = $("#save"); if (!b) return;
     var known = clinicById(F.src) || (F.raw && F.editSrc === "entry" && F.raw.clinic === F.src);
-    var ok = F.kind === "income" ? F.amount > 0 && (F.src === "rent" || known) : F.amount > 0;
-    if (F.kind === "income" && F.src !== "rent" && (F.lab || 0) > F.amount) ok = false;
+    var ok = F.kind === "work" ? F.amount > 0 && !!known : F.amount > 0;
+    if (F.kind === "work" && (F.lab || 0) > F.amount) ok = false;
     if (F.kind === "bank_out") {
       var own = F.raw ? Math.abs(F.raw.amount || 0) : 0, over = F.amount > bankBal() + own;
       ok = ok && !over;
@@ -697,19 +742,18 @@ input[type=date],input.note{width:100%;height:50px;border-radius:18px;background
     var ok = false, msg = "";
     try {
       if (k === "income") {
-        var date = F.date || TODAY;
-        if (F.src === "rent") {
-          var od = { date: date, amount: F.amount, name: "Сдача жилья", updatedAt: Date.now() };
-          if (F.edit && F.editSrc === "other") await db.doc("other_income/" + F.edit).update(od);
-          else { await db.collection("other_income").add(Object.assign(od, { createdAt: Date.now() })); if (F.edit) await db.doc("entries/" + F.edit).delete(); }
-        } else {
-          var c = clinicById(F.src) || { name: (F.raw && F.raw.clinicName) || "Клиника" }, pct = pctFor();
-          var ed = { date: date, amount: F.amount, lab: F.lab || 0, clinic: F.src, clinicName: c.name, pct: pct, updatedAt: Date.now() };
-          if (F.edit && F.editSrc === "entry") await db.doc("entries/" + F.edit).update(ed);
-          else { await db.collection("entries").add(Object.assign(ed, { createdAt: Date.now() })); if (F.edit) await db.doc("other_income/" + F.edit).delete(); }
-          remember({ lastClinic: F.src });
-        }
-        msg = "Записано: +" + fmt(curAmount()) + " ₽";
+        var od = { date: F.date || TODAY, amount: F.amount, name: F.src === "salary" ? "ЗП" : "Сдача жилья", updatedAt: Date.now() };
+        if (F.edit) await db.doc("other_income/" + F.edit).update(od);
+        else await db.collection("other_income").add(Object.assign(od, { createdAt: Date.now() }));
+        remember({ lastIncome: F.src });
+        msg = "Записано: +" + fmt(F.amount) + " ₽";
+      } else if (k === "work") {
+        var c = clinicById(F.src) || { name: (F.raw && F.raw.clinicName) || "Клиника" }, pct = pctFor();
+        var ed = { date: F.date || TODAY, amount: F.amount, lab: F.lab || 0, clinic: F.src, clinicName: c.name, pct: pct, updatedAt: Date.now() };
+        if (F.edit) await db.doc("entries/" + F.edit).update(ed);
+        else await db.collection("entries").add(Object.assign(ed, { createdAt: Date.now() }));
+        remember({ lastClinic: F.src });
+        msg = "Заработано: +" + fmt(curAmount()) + " ₽";
       } else if (k === "expense") {
         var xd = { date: F.date || TODAY, amount: F.amount, category: F.cat, note: (F.note || "").trim(), updatedAt: Date.now() };
         if (F.edit) await db.doc("expenses/" + F.edit).update(xd);
@@ -736,11 +780,11 @@ input[type=date],input.note{width:100%;height:50px;border-radius:18px;background
     var facts = "";
     if (kind === "income") {
       facts += "<div><span>Откуда</span><b>" + esc(r.title) + "</b></div>";
-      if (r.src === "entry") {
-        facts += "<div><span>Сумма работы</span><b>" + fmt(r.raw.amount) + " ₽</b></div>";
-        if (r.raw.lab) facts += "<div><span>Техник</span><b>" + fmt(r.raw.lab) + " ₽</b></div>";
-        facts += "<div><span>Процент</span><b>" + (r.raw.pct || 0) + "%</b></div>";
-      }
+    } else if (kind === "work") {
+      facts += "<div><span>Клиника</span><b>" + esc(r.title) + "</b></div>";
+      facts += "<div><span>Сумма работы</span><b>" + fmt(r.raw.amount) + " ₽</b></div>";
+      if (r.raw.lab) facts += "<div><span>Техник</span><b>" + fmt(r.raw.lab) + " ₽</b></div>";
+      facts += "<div><span>Процент</span><b>" + (r.raw.pct || 0) + "%</b></div>";
     } else if (kind === "expense") {
       facts += "<div><span>На что</span><b>" + esc(((r.icon || "") + " " + r.title).trim()) + "</b></div>";
       if (r.raw.note) facts += "<div><span>Заметка</span><b>" + esc(r.raw.note) + "</b></div>";
@@ -763,7 +807,7 @@ input[type=date],input.note{width:100%;height:50px;border-radius:18px;background
       setTimeout(function () { if (btn.isConnected) { btn.classList.remove("armed"); btn.textContent = "Удалить"; } }, 3500);
       return;
     }
-    var path = kind === "income" ? (r.src === "entry" ? "entries/" : "other_income/") : kind === "expense" ? "expenses/" : "savings/";
+    var path = kind === "income" ? "other_income/" : kind === "work" ? "entries/" : kind === "expense" ? "expenses/" : "savings/";
     try { await db.doc(path + r.id).delete(); } catch (e) { return toast("Не удалось удалить. Попробуй ещё раз.", true); }
     closeSheet(); render(); toast("Запись удалена");
   }
@@ -881,7 +925,7 @@ input[type=date],input.note{width:100%;height:50px;border-radius:18px;background
       e.target.value = n ? fmt(n) : "";
       if (id === "amt") F.amount = n; else F.lab = n;
       var calc = $("#calc");
-      if (calc && F.kind === "income") calc.innerHTML = "Вам по " + pctFor() + "%: <b>" + fmt(yours()) + " ₽</b>";
+      if (calc && F.kind === "work") calc.innerHTML = "Вам по " + pctFor() + "%: <b>" + fmt(yours()) + " ₽</b>";
       updSave();
     } else if (id === "date") F.date = e.target.value || TODAY;
     else if (id === "note") F.note = e.target.value;
@@ -915,7 +959,7 @@ input[type=date],input.note{width:100%;height:50px;border-radius:18px;background
     ROLE = own ? "owner" : "irina";
     var app = $("#app"); app.dataset.role = ROLE;
     var verText = $("#appVer").textContent;
-    if (verText.indexOf("__") > -1) $("#appVer").textContent = "Версия 3.1 · локальная копия";
+    if (verText.indexOf("__") > -1) $("#appVer").textContent = "Версия 3.2 · локальная копия";
     db = window.claude && window.claude.use ? await window.claude.use("db") : null;
     if (!db) { showStatus("Хранилище недоступно. Проверь интернет и обнови страницу."); return; }
     db.doc("app/settings").onSnapshot(function (s) { S.settings = s.exists ? s.data() : null; if (nav[nav.length - 1] !== "settings") render(); }, onErr);
